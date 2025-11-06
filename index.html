@@ -1,0 +1,1043 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>心理健康测评系统</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        :root {
+            --primary-color: #4a6fa5;
+            --secondary-color: #6b8cbc;
+            --accent-color: #ff7e5f;
+            --light-color: #f5f7fa;
+            --dark-color: #2c3e50;
+            --success-color: #2ecc71;
+            --warning-color: #f39c12;
+            --danger-color: #e74c3c;
+            --border-radius: 8px;
+            --box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            --transition: all 0.3s ease;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: var(--light-color);
+            color: var(--dark-color);
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        header {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            padding: 20px 0;
+            text-align: center;
+            border-radius: var(--border-radius);
+            margin-bottom: 30px;
+            box-shadow: var(--box-shadow);
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+
+        .card {
+            background: white;
+            border-radius: var(--border-radius);
+            padding: 25px;
+            margin-bottom: 25px;
+            box-shadow: var(--box-shadow);
+            transition: var(--transition);
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: var(--border-radius);
+            font-size: 16px;
+            transition: var(--transition);
+        }
+
+        input:focus, select:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 2px rgba(74, 111, 165, 0.2);
+        }
+
+        input.invalid {
+            border-color: var(--danger-color);
+            box-shadow: 0 0 0 2px rgba(231, 76, 60, 0.2);
+        }
+
+        input.valid {
+            border-color: var(--success-color);
+            box-shadow: 0 0 0 2px rgba(46, 204, 113, 0.2);
+        }
+
+        .validation-message {
+            font-size: 0.85rem;
+            margin-top: 5px;
+            display: none;
+        }
+
+        .validation-message.valid {
+            color: var(--success-color);
+            display: block;
+        }
+
+        .validation-message.invalid {
+            color: var(--danger-color);
+            display: block;
+        }
+
+        .btn {
+            display: inline-block;
+            background-color: var(--primary-color);
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: var(--border-radius);
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: var(--transition);
+            text-align: center;
+        }
+
+        .btn:hover {
+            background-color: var(--secondary-color);
+            transform: translateY(-2px);
+        }
+
+        .btn-accent {
+            background-color: var(--accent-color);
+        }
+
+        .btn-accent:hover {
+            background-color: #ff9a7a;
+        }
+
+        .btn-block {
+            display: block;
+            width: 100%;
+        }
+
+        .btn:disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn:disabled:hover {
+            background-color: #cccccc;
+            transform: none;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .progress-bar {
+            height: 8px;
+            background-color: #e0e0e0;
+            border-radius: 4px;
+            margin-bottom: 20px;
+            overflow: hidden;
+        }
+
+        .progress {
+            height: 100%;
+            background-color: var(--primary-color);
+            width: 0%;
+            transition: width 0.5s ease;
+        }
+
+        .question-container {
+            margin-bottom: 25px;
+        }
+
+        .question-text {
+            font-size: 1.2rem;
+            margin-bottom: 15px;
+            font-weight: 600;
+            line-height: 1.5;
+        }
+
+        .options-container {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .option-label {
+            display: flex;
+            align-items: center;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: var(--border-radius);
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .option-label:hover {
+            background-color: #f9f9f9;
+            border-color: var(--primary-color);
+        }
+
+        .option-label.selected {
+            background-color: rgba(74, 111, 165, 0.1);
+            border-color: var(--primary-color);
+        }
+
+        .option-input {
+            margin-right: 10px;
+        }
+
+        .navigation-buttons {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 30px;
+        }
+
+        .result-section {
+            text-align: center;
+            padding: 30px;
+        }
+
+        .result-title {
+            font-size: 2rem;
+            margin-bottom: 20px;
+            color: var(--primary-color);
+        }
+
+        .result-score {
+            font-size: 3rem;
+            font-weight: bold;
+            color: var(--accent-color);
+            margin: 20px 0;
+        }
+
+        .result-description {
+            text-align: left;
+            margin-top: 30px;
+            padding: 20px;
+            background-color: #f9f9f9;
+            border-radius: var(--border-radius);
+        }
+
+        .result-recommendations {
+            text-align: left;
+            margin-top: 20px;
+            padding: 20px;
+            background-color: #f0f7ff;
+            border-radius: var(--border-radius);
+        }
+
+        .recommendation-item {
+            margin-bottom: 10px;
+            padding-left: 20px;
+            position: relative;
+        }
+
+        .recommendation-item:before {
+            content: "•";
+            color: var(--primary-color);
+            font-weight: bold;
+            position: absolute;
+            left: 0;
+        }
+
+        .age-group-buttons {
+            display: flex;
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .age-group-btn {
+            flex: 1;
+            padding: 15px;
+            background-color: #f0f0f0;
+            border: 2px solid transparent;
+            border-radius: var(--border-radius);
+            cursor: pointer;
+            transition: var(--transition);
+            text-align: center;
+            font-weight: 600;
+        }
+
+        .age-group-btn:hover {
+            background-color: #e0e0e0;
+        }
+
+        .age-group-btn.selected {
+            background-color: var(--primary-color);
+            color: white;
+            border-color: var(--primary-color);
+        }
+
+        .dimension-score {
+            margin: 15px 0;
+            padding: 15px;
+            background: white;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+        }
+
+        .dimension-name {
+            font-weight: bold;
+            margin-bottom: 8px;
+            color: var(--primary-color);
+        }
+
+        .dimension-bar {
+            height: 10px;
+            background-color: #e0e0e0;
+            border-radius: 5px;
+            overflow: hidden;
+            margin: 8px 0;
+        }
+
+        .dimension-progress {
+            height: 100%;
+            background: linear-gradient(90deg, var(--success-color), var(--warning-color), var(--danger-color));
+            border-radius: 5px;
+            transition: width 0.8s ease;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 10px;
+            }
+            
+            h1 {
+                font-size: 2rem;
+            }
+            
+            .age-group-buttons {
+                flex-direction: column;
+            }
+            
+            .navigation-buttons {
+                flex-direction: column;
+                gap: 10px;
+            }
+            
+            .btn {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>心理健康测评系统</h1>
+            <p class="subtitle">专业心理测评，科学了解心理健康状况</p>
+        </header>
+
+        <!-- 用户信息表单 -->
+        <section id="user-info-section" class="card">
+            <h2>用户信息</h2>
+            <form id="user-info-form">
+                <div class="form-group">
+                    <label for="parent-name">家长姓名</label>
+                    <input type="text" id="parent-name" required>
+                </div>
+                <div class="form-group">
+                    <label for="parent-phone">联系电话</label>
+                    <input type="tel" id="parent-phone" required 
+                           placeholder="请输入11位手机号码"
+                           pattern="1[3-9]\d{9}"
+                           maxlength="11">
+                    <div id="phone-validation" class="validation-message">
+                        请输入有效的11位手机号码（以13-19开头）
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="child-name">孩子姓名</label>
+                    <input type="text" id="child-name" required>
+                </div>
+                <div class="form-group">
+                    <label for="child-age">孩子年龄</label>
+                    <input type="number" id="child-age" min="3" max="18" required>
+                </div>
+                <div class="form-group">
+                    <label>选择测评类型</label>
+                    <div class="age-group-buttons">
+                        <button type="button" class="age-group-btn" data-age-group="preschooler">幼儿测评(3-6岁)</button>
+                        <button type="button" class="age-group-btn" data-age-group="junior">初中生测评(12-15岁)</button>
+                        <button type="button" class="age-group-btn" data-age-group="senior">高中生测评(15-18岁)</button>
+                    </div>
+                    <div id="selected-age-group" style="margin-top: 10px; font-weight: bold; color: var(--primary-color);"></div>
+                </div>
+                <button type="submit" class="btn btn-block" id="submit-btn">开始测评</button>
+            </form>
+        </section>
+
+        <!-- 测评问题部分 -->
+        <section id="test-section" class="card hidden">
+            <div class="progress-bar">
+                <div class="progress" id="progress-bar"></div>
+            </div>
+            <div class="question-counter" id="question-counter" style="text-align: center; margin-bottom: 15px; font-weight: bold;"></div>
+            <div id="question-container" class="question-container">
+                <!-- 问题将动态加载到这里 -->
+            </div>
+            <div class="navigation-buttons">
+                <button id="prev-btn" class="btn">上一题</button>
+                <button id="next-btn" class="btn">下一题</button>
+                <button id="submit-test-btn" class="btn btn-accent hidden">提交测评</button>
+            </div>
+        </section>
+
+        <!-- 测评结果部分 -->
+        <section id="result-section" class="card hidden">
+            <div class="result-section">
+                <h2 class="result-title">测评结果</h2>
+                <div class="result-score" id="result-score">0</div>
+                <div id="result-description" class="result-description">
+                    <!-- 结果描述将动态加载到这里 -->
+                </div>
+                <div id="dimension-scores">
+                    <!-- 维度分数将动态加载到这里 -->
+                </div>
+                <div id="result-recommendations" class="result-recommendations">
+                    <!-- 建议将动态加载到这里 -->
+                </div>
+                <button id="restart-btn" class="btn" style="margin-top: 30px;">重新测评</button>
+            </div>
+        </section>
+    </div>
+
+    <script>
+        // Supabase配置
+        const SUPABASE_URL = 'https://bgacrpaqdgjoobpcknjx.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJnYWNycGFxZGdqb29icGNrbmp4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjE2MTQwNDcsImV4cCI6MjA3NzE5MDA0N30.YoqyHY-FkijdAIuJ3WX-KQcQgAyJIXM2FKV2Dar4gfc';
+
+        // 初始化Supabase客户端
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        // 应用状态
+        const state = {
+            currentSection: 'user-info',
+            currentQuestionIndex: 0,
+            selectedAgeGroup: '',
+            userInfo: {},
+            answers: [],
+            questions: [],
+            dimensions: {}
+        };
+
+        // 完整的40道题目库 - 涵盖多个心理维度
+        const questionBanks = {
+            preschooler: [
+                // 情绪稳定性维度 (8题)
+                { id: 1, text: "孩子是否容易因为小事而哭闹？", options: ["从不", "很少", "有时", "经常", "总是"], dimension: "情绪稳定性", reverse: false },
+                { id: 2, text: "孩子情绪变化是否很快，容易从开心转为不开心？", options: ["从不", "很少", "有时", "经常", "总是"], dimension: "情绪稳定性", reverse: false },
+                { id: 3, text: "孩子是否能保持较长时间的平静状态？", options: ["总是", "经常", "有时", "很少", "从不"], dimension: "情绪稳定性", reverse: true },
+                { id: 4, text: "孩子遇到挫折时是否容易发脾气？", options: ["从不", "很少", "有时", "经常", "总是"], dimension: "情绪稳定性", reverse: false },
+                { id: 5, text: "孩子是否容易感到害怕或紧张？", options: ["从不", "很少", "有时", "经常", "总是"], dimension: "情绪稳定性", reverse: false },
+                { id: 6, text: "孩子是否能较好地控制自己的情绪？", options: ["总是", "经常", "有时", "很少", "从不"], dimension: "情绪稳定性", reverse: true },
+                { id: 7, text: "孩子是否经常表现出焦虑不安？", options: ["从不", "很少", "有时", "经常", "总是"], dimension: "情绪稳定性", reverse: false },
+                { id: 8, text: "孩子情绪是否相对稳定，不易波动？", options: ["总是", "经常", "有时", "很少", "从不"], dimension: "情绪稳定性", reverse: true },
+
+                // 社交能力维度 (8题)
+                { id: 9, text: "孩子是否愿意与其他小朋友一起玩耍？", options: ["总是", "经常", "有时", "很少", "从不"], dimension: "社交能力", reverse: true },
+                { id: 10, text: "孩子是否能主动与其他孩子交流？", options: ["总是", "经常", "有时", "很少", "从不"], dimension: "社交能力", reverse: true },
+                { id: 11, text: "孩子在集体活动中是否表现得孤僻？", options: ["从不", "很少", "有时", "经常", "总是"], dimension: "社交能力", reverse: false },
+                { id: 12, text: "孩子是否懂得分享玩具和物品？", options: ["总是", "经常", "有时", "很少", "从不"], dimension: "社交能力", reverse: true },
+                { id: 13, text: "孩子是否能理解并遵守游戏规则？", options: ["总是", "经常", "有时", "很少", "从不"], dimension: "社交能力", reverse: true },
+                { id: 14, text: "孩子是否经常与同伴发生冲突？", options: ["从不", "很少", "有时", "经常", "总是"], dimension: "社交能力", reverse: false },
+                { id: 15, text: "孩子是否能表达自己的需求和想法？", options: ["总是", "经常", "有时", "很少", "从不"], dimension: "社交能力", reverse: true },
+                { id: 16, text: "孩子是否愿意参与集体活动？", options: ["总是", "经常", "有时", "很少", "从不"], dimension: "社交能力", reverse: true },
+
+                // 行为表现维度 (8题)
+                { id: 17, text: "孩子是否有攻击性行为（如推人、打人）？", options: ["从不", "很少", "有时", "经常", "总是"], dimension: "行为表现", reverse: false },
+                { id: 18, text: "孩子是否能遵守基本的规则和指令？", options: ["总是", "经常", "有时", "很少", "从不"], dimension: "行为表现", reverse: true },
+                { id: 19, text: "孩子是否有破坏物品的行为？", options: ["从不", "很少", "有时", "经常", "总是"], dimension: "行为表现", reverse: false },
+                { id: 20, text: "孩子做事是否有耐心？", options: ["总是", "经常", "有时", "很少", "从不"], dimension: "行为表现", reverse: true },
+                { id: 21, text: "孩子是否经常坐立不安，难以安静？", options: ["从不", "很少", "有时", "经常", "总是"], dimension: "行为表现", reverse: false },
+                { id: 22, text: "孩子是否能独立完成简单任务？", options: ["总是", "经常", "有时", "很少", "从不"], dimension: "行为表现", reverse: true },
+                { id: 23, text: "孩子是否有咬指甲、吸手指等习惯？", options: ["从不", "很少", "有时", "经常", "总是"], dimension: "行为表现", reverse: false },
+                { id: 24, text: "孩子生活作息是否规律？", options: ["总是", "经常", "有时", "很少", "从不"], dimension: "行为表现", reverse: true },
+
+                // 适应能力维度 (8题)
+                { id: 25, text: "孩子是否能快速适应新环境？", options: ["总是", "经常", "有时", "很少", "从不"], dimension: "适应能力", reverse: true },
+                { id: 26, text: "孩子面对变化时是否容易焦虑？", options: ["从不", "很少", "有时", "经常", "总是"], dimension: "适应能力", reverse: false },
+                { id: 27, text: "孩子是否愿意尝试新食物？", options: ["总是", "经常", "有时", "很少", "从不"], dimension: "适应能力", reverse: true },
+                { id: 28, text: "孩子到陌生环境是否表现得很紧张？", options: ["从不", "很少", "有时", "经常", "总是"], dimension: "适应能力", reverse: false },
+                { id: 29, text: "孩子是否能接受日常生活中的小变化？", options: ["总是", "经常", "有时", "很少", "从不"], dimension: "适应能力", reverse: true },
+                { id: 30, text: "孩子分离焦虑是否严重？", options: ["从不", "很少", "有时", "经常", "总是"], dimension: "适应能力", reverse: false },
+                { id: 31, text: "孩子是否容易接受新朋友？", options: ["总是", "经常", "有时", "很少", "从不"], dimension: "适应能力", reverse: true },
+                { id: 32, text: "孩子面对新挑战时是否容易放弃？", options: ["从不", "很少", "有时", "经常", "总是"], dimension: "适应能力", reverse: false },
+
+                // 认知发展维度 (8题)
+                { id: 33, text: "孩子对周围事物是否充满好奇？", options: ["总是", "经常", "有时", "很少", "从不"], dimension: "认知发展", reverse: true },
+                { id: 34, text: "孩子注意力是否能保持较长时间？", options: ["总是", "经常", "有时", "很少", "从不"], dimension: "认知发展", reverse: true },
+                { id: 35, text: "孩子是否喜欢听故事和看图画书？", options: ["总是", "经常", "有时", "很少", "从不"], dimension: "认知发展", reverse: true },
+                { id: 36, text: "孩子记忆力如何？", options: ["很好", "较好", "一般", "较差", "很差"], dimension: "认知发展", reverse: true },
+                { id: 37, text: "孩子语言表达能力如何？", options: ["很好", "较好", "一般", "较差", "很差"], dimension: "认知发展", reverse: true },
+                { id: 38, text: "孩子是否喜欢问问题？", options: ["总是", "经常", "有时", "很少", "从不"], dimension: "认知发展", reverse: true },
+                { id: 39, text: "孩子解决问题的能力如何？", options: ["很好", "较好", "一般", "较差", "很差"], dimension: "认知发展", reverse: true },
+                { id: 40, text: "孩子模仿和学习能力如何？", options: ["很好", "较好", "一般", "较差", "很差"], dimension: "认知发展", reverse: true }
+            ],
+
+            junior: [
+                // 情绪管理维度 (8题)
+                { id: 1, text: "你容易控制自己的情绪吗？", options: ["总是", "经常", "有时", "很少", "从不"], dimension: "情绪管理", reverse: true },
+                { id: 2, text: "你会因为小事而大发脾气吗？", options: ["从不", "很少", "有时", "经常", "总是"], dimension: "情绪管理", reverse: false },
+                { id: 3, text: "你感到情绪低落的时候多吗？", options: ["从不", "很少", "有时", "经常", "总是"], dimension: "情绪管理", reverse: false },
+                { id: 4, text: "你能很快从负面情绪中恢复吗？", options: ["总是", "经常", "有时", "很少", "从不"], dimension: "情绪管理", reverse: true },
+                { id: 5, text: "你经常感到焦虑或紧张吗？", options: ["从不", "很少", "有时", "经常", "总是"], dimension: "情绪管理", reverse: false },
+                { id: 6, text: "你能恰当表达自己的情绪吗？", options: ["总是", "经常", "有时", "很少", "从不"], dimension: "情绪管理", reverse: true },
+                { id: 7, text: "你容易因为别人的话而情绪波动吗？", options: ["从不", "很少", "有时", "经常", "总是"], dimension: "情绪管理", reverse: false },
+                { id: 8, text: "你对自己的情绪状态了解吗？", options: ["总是", "经常", "有时", "很少", "从不"], dimension: "情绪管理", reverse: true },
+
+                // 学习压力维度 (8题)
+                { id: 9, text: "你感到学习压力大吗？", options: ["从不", "很少", "有时", "经常", "总是"], dimension: "学习压力", reverse: false },
+                { id: 10, text: "考试前你会感到特别紧张吗？", options: ["从不", "很少", "有时", "经常", "总是"], dimension: "学习压力", reverse: false },
+                { id: 11, text: "你能合理安排学习时间吗？", options: ["总是", "经常", "有时", "很少", "从不"], dimension: "学习压力", reverse: true },
+                { id: 12, text: "你担心自己的学习成绩吗？", options: ["从不", "很少", "有时", "经常", "总是"], dimension: "学习压力", reverse: false },
+                { id: 13, text: "学习时你能保持专注吗？", options: ["总是", "经常", "有时", "很少", "从不"], dimension: "学习压力", reverse: true },
+                { id: 14, text: "你会因为学习问题而失眠吗？", options: ["从不", "很少", "有时", "经常", "总是"], dimension: "学习压力", reverse: false },
+                { id: 15, text: "你对学习有积极性吗？", options: ["总是", "经常", "有时", "很少", "从不"], dimension: "学习压力", reverse: true },
+                { id: 16, text: "你感到学习负担重吗？", options: ["从不", "很少", "有时", "经常", "总是"], dimension: "学习压力", reverse: false },
+
+                // 人际关系维度 (8题)
+                { id: 17, text: "你与同学相处融洽吗？", options: ["总是", "经常", "有时", "很少", "从不"], dimension: "人际关系", reverse: true },
+                { id: 18, text: "你容易交到新朋友吗？", options: ["总是", "经常", "有时", "很少", "从不"], dimension: "人际关系", reverse: true },
+                { id: 19, text: "你与老师沟通顺畅吗？", options: ["总是", "经常", "有时", "很少", "从不"], dimension: "人际关系", reverse: true },
+                { id: 20, text: "你在集体活动中感到自在吗？", options: ["总是", "经常", "有时", "很少", "从不"], dimension: "人际关系", reverse: true },
+                { id: 21, text: "你经常与同学发生矛盾吗？", options: ["从不", "很少", "有时", "经常", "总是"], dimension: "人际关系", reverse: false },
+                { id: 22, text: "你能理解他人的感受吗？", options: ["总是", "经常", "有时", "很少", "从不"], dimension: "人际关系", reverse: true },
+                { id: 23, text: "你愿意帮助同学吗？", options: ["总是", "经常", "有时", "很少", "从不"], dimension: "人际关系", reverse: true },
+                { id: 24, text: "你感到被同学孤立吗？", options: ["从不", "很少", "有时", "经常", "总是"], dimension: "人际关系", reverse: false },
+
+                // 自我认知维度 (8题)
+                { id: 25, text: "你对自己的能力有信心吗？", options: ["总是", "经常", "有时", "很少", "从不"], dimension: "自我认知", reverse: true },
+                { id: 26, text: "你清楚自己的优点和缺点吗？", options: ["总是", "经常", "有时", "很少", "从不"], dimension: "自我认知", reverse: true },
+                { id: 27, text: "你经常否定自己吗？", options: ["从不", "很少", "有时", "经常", "总是"], dimension: "自我认知", reverse: false },
+                { id: 28, text: "你能接受别人的批评吗？", options: ["总是", "经常", "有时", "很少", "从不"], dimension: "自我认知", reverse: true },
+                { id: 29, text: "你对自己的外貌满意吗？", options: ["总是", "经常", "有时", "很少", "从不"], dimension: "自我认知", reverse: true },
+                { id: 30, text: "你觉得自己是个有价值的人吗？", options: ["总是", "经常", "有时", "很少", "从不"], dimension: "自我认知", reverse: true },
+                { id: 31, text: "你经常拿自己和别人比较吗？", options: ["从不", "很少", "有时", "经常", "总是"], dimension: "自我认知", reverse: false },
+                { id: 32, text: "你能坚持自己的观点吗？", options: ["总是", "经常", "有时", "很少", "从不"], dimension: "自我认知", reverse: true },
+
+                // 生活适应维度 (8题)
+                { id: 33, text: "你能适应学校的生活节奏吗？", options: ["总是", "经常", "有时", "很少", "从不"], dimension: "生活适应", reverse: true },
+                { id: 34, text: "你遇到困难时能积极面对吗？", options: ["总是", "经常", "有时", "很少", "从不"], dimension: "生活适应", reverse: true },
+                { id: 35, text: "你能独立解决生活中的问题吗？", options: ["总是", "经常", "有时", "很少", "从不"], dimension: "生活适应", reverse: true },
+                { id: 36, text: "你感到生活有意义吗？", options: ["总是", "经常", "有时", "很少", "从不"], dimension: "生活适应", reverse: true },
+                { id: 37, text: "你能平衡学习与娱乐的时间吗？", options: ["总是", "经常", "有时", "很少", "从不"], dimension: "生活适应", reverse: true },
+                { id: 38, text: "你对未来有明确的规划吗？", options: ["总是", "经常", "有时", "很少", "从不"], dimension: "生活适应", reverse: true },
+                { id: 39, text: "你能接受生活中的变化吗？", options: ["总是", "经常", "有时", "很少", "从不"], dimension: "生活适应", reverse: true },
+                { id: 40, text: "你感到自己的生活充实吗？", options: ["总是", "经常", "有时", "很少", "从不"], dimension: "生活适应", reverse: true }
+            ],
+
+            senior: [
+                // 压力应对维度 (8题)
+                { id: 1, text: "你感到高考或升学压力大吗？", options: ["从不", "很少", "有时", "经常", "总是"], dimension: "压力应对", reverse: false },
+                { id: 2, text: "你能有效管理学习压力吗？", options: ["总是", "经常", "有时", "很少", "从不"], dimension: "压力应对", reverse: true },
+                { id: 3, text: "压力大时你能找到缓解方法吗？", options: ["总是", "经常", "有时", "很少", "从不"], dimension: "压力应对", reverse: true },
+                { id: 4, text: "你经常因为压力而失眠吗？", options: ["从不", "很少", "有时", "经常", "总是"], dimension: "压力应对", reverse: false },
+                { id: 5, text: "你能在压力下保持正常发挥吗？", options: ["总是", "经常", "有时", "很少", "从不"], dimension: "压力应对", reverse: true },
+                { id: 6, text: "你感到身心疲惫的时候多吗？", options: ["从不", "很少", "有时", "经常", "总是"], dimension: "压力应对", reverse: false },
+                { id: 7, text: "你能识别自己的压力信号吗？", options: ["总是", "经常", "有时", "很少", "从不"], dimension: "压力应对", reverse: true },
+                { id: 8, text: "你会主动寻求减压帮助吗？", options: ["总是", "经常", "有时", "很少", "从不"], dimension: "压力应对", reverse: true },
+
+                // 未来规划维度 (8题)
+                { id: 9, text: "你对未来有清晰的规划吗？", options: ["总是", "经常", "有时", "很少", "从不"], dimension: "未来规划", reverse: true },
+                { id: 10, text: "你为未来目标付出努力吗？", options: ["总是", "经常", "有时", "很少", "从不"], dimension: "未来规划", reverse: true },
+                { id: 11, text: "你对自己的职业方向明确吗？", options: ["总是", "经常", "有时", "很少", "从不"], dimension: "未来规划", reverse: true },
+                { id: 12, text: "你感到未来迷茫吗？", options: ["从不", "很少", "有时", "经常", "总是"], dimension: "未来规划", reverse: false },
+                { id: 13, text: "你能为实现目标坚持努力吗？", options: ["总是", "经常", "有时", "很少", "从不"], dimension: "未来规划", reverse: true },
+                { id: 14, text: "你对大学生活有期待吗？", options: ["总是", "经常", "有时", "很少", "从不"], dimension: "未来规划", reverse: true },
+                { id: 15, text: "你了解自己的专业兴趣吗？", options: ["总是", "经常", "有时", "很少", "从不"], dimension: "未来规划", reverse: true },
+                { id: 16, text: "你能接受未来发展的不确定性吗？", options: ["总是", "经常", "有时", "很少", "从不"], dimension: "未来规划", reverse: true },
+
+                // 自我管理维度 (8题)
+                { id: 17, text: "你能合理安排每天的时间吗？", options: ["总是", "经常", "有时", "很少", "从不"], dimension: "自我管理", reverse: true },
+                { id: 18, text: "你的学习效率高吗？", options: ["总是", "经常", "有时", "很少", "从不"], dimension: "自我管理", reverse: true },
+                { id: 19, text: "你能抵制手机等电子产品的诱惑吗？", options: ["总是", "经常", "有时", "很少", "从不"], dimension: "自我管理", reverse: true },
+                { id: 20, text: "你的生活习惯规律吗？", options: ["总是", "经常", "有时", "很少", "从不"], dimension: "自我管理", reverse: true },
+                { id: 21, text: "你能坚持锻炼身体吗？", options: ["总是", "经常", "有时", "很少", "从不"], dimension: "自我管理", reverse: true },
+                { id: 22, text: "你经常拖延作业或任务吗？", options: ["从不", "很少", "有时", "经常", "总是"], dimension: "自我管理", reverse: false },
+                { id: 23, text: "你能控制自己的消费行为吗？", options: ["总是", "经常", "有时", "很少", "从不"], dimension: "自我管理", reverse: true },
+                { id: 24, text: "你重视自己的身体健康吗？", options: ["总是", "经常", "有时", "很少", "从不"], dimension: "自我管理", reverse: true },
+
+                // 人际关系维度 (8题)
+                { id: 25, text: "你与父母沟通顺畅吗？", options: ["总是", "经常", "有时", "很少", "从不"], dimension: "人际关系", reverse: true },
+                { id: 26, text: "你能处理好与异性的关系吗？", options: ["总是", "经常", "有时", "很少", "从不"], dimension: "人际关系", reverse: true },
+                { id: 27, text: "你有可以倾诉心事的知心朋友吗？", options: ["总是", "经常", "有时", "很少", "从不"], dimension: "人际关系", reverse: true },
+                { id: 28, text: "你在社交场合感到自在吗？", options: ["总是", "经常", "有时", "很少", "从不"], dimension: "人际关系", reverse: true },
+                { id: 29, text: "你能理解并尊重不同观点吗？", options: ["总是", "经常", "有时", "很少", "从不"], dimension: "人际关系", reverse: true },
+                { id: 30, text: "你经常感到孤独吗？", options: ["从不", "很少", "有时", "经常", "总是"], dimension: "人际关系", reverse: false },
+                { id: 31, text: "你能妥善处理人际冲突吗？", options: ["总是", "经常", "有时", "很少", "从不"], dimension: "人际关系", reverse: true },
+                { id: 32, text: "你愿意参加集体活动吗？", options: ["总是", "经常", "有时", "很少", "从不"], dimension: "人际关系", reverse: true },
+
+                // 心理韧性维度 (8题)
+                { id: 33, text: "遇到挫折时你能很快恢复吗？", options: ["总是", "经常", "有时", "很少", "从不"], dimension: "心理韧性", reverse: true },
+                { id: 34, text: "你能从失败中吸取教训吗？", options: ["总是", "经常", "有时", "很少", "从不"], dimension: "心理韧性", reverse: true },
+                { id: 35, text: "面对困难时你保持乐观吗？", options: ["总是", "经常", "有时", "很少", "从不"], dimension: "心理韧性", reverse: true },
+                { id: 36, text: "你能适应环境和条件的变化吗？", options: ["总是", "经常", "有时", "很少", "从不"], dimension: "心理韧性", reverse: true },
+                { id: 37, text: "你相信自己有能力克服困难吗？", options: ["总是", "经常", "有时", "很少", "从不"], dimension: "心理韧性", reverse: true },
+                { id: 38, text: "在压力下你仍能清晰思考吗？", options: ["总是", "经常", "有时", "很少", "从不"], dimension: "心理韧性", reverse: true },
+                { id: 39, text: "你能在困境中保持希望吗？", options: ["总是", "经常", "有时", "很少", "从不"], dimension: "心理韧性", reverse: true },
+                { id: 40, text: "你具备应对挑战的信心吗？", options: ["总是", "经常", "有时", "很少", "从不"], dimension: "心理韧性", reverse: true }
+            ]
+        };
+
+        // 手机号验证函数
+        function validatePhone(phone) {
+            const phoneRegex = /^1[3-9]\d{9}$/;
+            return phoneRegex.test(phone);
+        }
+
+        // 更新手机号输入框状态
+        function updatePhoneValidationState(phone) {
+            const phoneInput = document.getElementById('parent-phone');
+            const validationMessage = document.getElementById('phone-validation');
+            const submitBtn = document.getElementById('submit-btn');
+            
+            if (phone === '') {
+                phoneInput.classList.remove('valid', 'invalid');
+                validationMessage.classList.remove('valid', 'invalid');
+                submitBtn.disabled = false;
+                return;
+            }
+            
+            if (validatePhone(phone)) {
+                phoneInput.classList.remove('invalid');
+                phoneInput.classList.add('valid');
+                validationMessage.classList.remove('invalid');
+                validationMessage.classList.add('valid');
+                validationMessage.textContent = '手机号格式正确';
+                submitBtn.disabled = false;
+            } else {
+                phoneInput.classList.remove('valid');
+                phoneInput.classList.add('invalid');
+                validationMessage.classList.remove('valid');
+                validationMessage.classList.add('invalid');
+                
+                if (phone.length !== 11) {
+                    validationMessage.textContent = '手机号必须是11位数字';
+                } else if (!/^1[3-9]/.test(phone)) {
+                    validationMessage.textContent = '手机号必须以13-19开头';
+                } else {
+                    validationMessage.textContent = '请输入有效的手机号码';
+                }
+                
+                submitBtn.disabled = true;
+            }
+        }
+
+        // 初始化应用
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('页面加载完成，初始化事件监听器...');
+            
+            // 手机号输入实时验证
+            document.getElementById('parent-phone').addEventListener('input', function(e) {
+                const phone = e.target.value.replace(/\s/g, '');
+                updatePhoneValidationState(phone);
+            });
+            
+            // 用户信息表单提交
+            document.getElementById('user-info-form').addEventListener('submit', handleUserInfoSubmit);
+            
+            // 年龄组选择 - 修复这里！
+            document.querySelectorAll('.age-group-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    console.log('年龄组按钮被点击:', this.dataset.ageGroup);
+                    document.querySelectorAll('.age-group-btn').forEach(b => b.classList.remove('selected'));
+                    this.classList.add('selected');
+                    state.selectedAgeGroup = this.dataset.ageGroup;
+                    
+                    // 显示选中的测评类型
+                    const displayText = {
+                        'preschooler': '幼儿测评(3-6岁)',
+                        'junior': '初中生测评(12-15岁)', 
+                        'senior': '高中生测评(15-18岁)'
+                    }[state.selectedAgeGroup];
+                    
+                    document.getElementById('selected-age-group').textContent = `已选择: ${displayText}`;
+                });
+            });
+            
+            // 测评导航按钮
+            document.getElementById('prev-btn').addEventListener('click', showPreviousQuestion);
+            document.getElementById('next-btn').addEventListener('click', showNextQuestion);
+            document.getElementById('submit-test-btn').addEventListener('click', submitTest);
+            
+            // 重新测评按钮
+            document.getElementById('restart-btn').addEventListener('click', restartTest);
+            
+            console.log('所有事件监听器已初始化');
+        });
+
+        // 处理用户信息提交
+        async function handleUserInfoSubmit(e) {
+            e.preventDefault();
+            console.log('表单提交，当前选中的年龄组:', state.selectedAgeGroup);
+            
+            if (!state.selectedAgeGroup) {
+                alert('请选择测评类型');
+                return;
+            }
+            
+            const parentPhone = document.getElementById('parent-phone').value;
+            
+            if (!validatePhone(parentPhone)) {
+                alert('请输入有效的11位手机号码（以13-19开头）');
+                document.getElementById('parent-phone').focus();
+                return;
+            }
+            
+            state.userInfo = {
+                parent_name: document.getElementById('parent-name').value,
+                parent_phone: parentPhone,
+                child_name: document.getElementById('child-name').value,
+                child_age: document.getElementById('child-age').value,
+                age_group: state.selectedAgeGroup
+            };
+
+            try {
+                const { data, error } = await supabase
+                    .from('users_3')
+                    .insert([state.userInfo]);
+                
+                if (error) {
+                    console.error('保存用户信息失败:', error);
+                    
+                    if (error.code === '23514') {
+                        alert('手机号格式不符合要求：必须是11位数字且以13-19开头');
+                    } else if (error.code === '23505') {
+                        alert('该手机号已存在，请使用其他手机号');
+                    } else {
+                        alert('保存用户信息失败，请检查信息是否正确后重试');
+                    }
+                    return;
+                }
+                
+                console.log('用户信息保存成功:', data);
+                
+                // 初始化测评
+                state.questions = questionBanks[state.selectedAgeGroup];
+                state.answers = new Array(state.questions.length).fill(null);
+                
+                // 切换到测评界面
+                showSection('test-section');
+                showQuestion(0);
+                
+            } catch (error) {
+                console.error('保存用户信息时发生错误:', error);
+                alert('保存用户信息时发生错误，请重试');
+            }
+        }
+
+        // 显示指定部分
+        function showSection(sectionId) {
+            document.getElementById('user-info-section').classList.add('hidden');
+            document.getElementById('test-section').classList.add('hidden');
+            document.getElementById('result-section').classList.add('hidden');
+            
+            document.getElementById(sectionId).classList.remove('hidden');
+            state.currentSection = sectionId;
+        }
+
+        // 显示问题
+        function showQuestion(index) {
+            state.currentQuestionIndex = index;
+            const question = state.questions[index];
+            const questionContainer = document.getElementById('question-container');
+            
+            // 更新进度条和题号显示
+            const progress = ((index + 1) / state.questions.length) * 100;
+            document.getElementById('progress-bar').style.width = `${progress}%`;
+            document.getElementById('question-counter').textContent = `第 ${index + 1} 题 / 共 ${state.questions.length} 题`;
+            
+            // 构建问题HTML
+            let questionHTML = `
+                <div class="question-text">${question.text}</div>
+                <div class="options-container">
+            `;
+            
+            question.options.forEach((option, optionIndex) => {
+                const isSelected = state.answers[index] === optionIndex;
+                questionHTML += `
+                    <label class="option-label ${isSelected ? 'selected' : ''}">
+                        <input type="radio" name="question-${index}" value="${optionIndex}" class="option-input" ${isSelected ? 'checked' : ''}>
+                        ${option}
+                    </label>
+                `;
+            });
+            
+            questionHTML += '</div>';
+            questionContainer.innerHTML = questionHTML;
+            
+            // 添加选项选择事件
+            document.querySelectorAll('.option-input').forEach(input => {
+                input.addEventListener('change', function() {
+                    state.answers[index] = parseInt(this.value);
+                    document.querySelectorAll('.option-label').forEach(label => {
+                        label.classList.remove('selected');
+                    });
+                    this.parentElement.classList.add('selected');
+                });
+            });
+            
+            // 更新导航按钮状态
+            document.getElementById('prev-btn').classList.toggle('hidden', index === 0);
+            document.getElementById('next-btn').classList.toggle('hidden', index === state.questions.length - 1);
+            document.getElementById('submit-test-btn').classList.toggle('hidden', index !== state.questions.length - 1);
+        }
+
+        // 显示上一题
+        function showPreviousQuestion() {
+            if (state.currentQuestionIndex > 0) {
+                showQuestion(state.currentQuestionIndex - 1);
+            }
+        }
+
+        // 显示下一题
+        function showNextQuestion() {
+            if (state.currentQuestionIndex < state.questions.length - 1) {
+                showQuestion(state.currentQuestionIndex + 1);
+            }
+        }
+
+        // 计算维度分数
+        function calculateDimensionScores() {
+            const dimensionScores = {};
+            const dimensionCounts = {};
+            
+            state.questions.forEach((question, index) => {
+                const dimension = question.dimension;
+                if (!dimensionScores[dimension]) {
+                    dimensionScores[dimension] = 0;
+                    dimensionCounts[dimension] = 0;
+                }
+                
+                let score = state.answers[index];
+                // 如果是反向计分题，需要转换分数
+                if (question.reverse) {
+                    score = 4 - score;
+                }
+                
+                dimensionScores[dimension] += score;
+                dimensionCounts[dimension]++;
+            });
+            
+            // 计算每个维度的平均分（0-4分制，转换为0-100分制）
+            const normalizedScores = {};
+            for (const dimension in dimensionScores) {
+                const avgScore = dimensionScores[dimension] / dimensionCounts[dimension];
+                normalizedScores[dimension] = Math.round((avgScore / 4) * 100);
+            }
+            
+            return normalizedScores;
+        }
+
+        // 提交测评
+        function submitTest() {
+            if (state.answers.includes(null)) {
+                alert('请完成所有问题后再提交');
+                return;
+            }
+            
+            // 计算维度分数
+            const dimensionScores = calculateDimensionScores();
+            state.dimensions = dimensionScores;
+            
+            // 计算总分（各维度平均分）
+            const totalScore = Object.values(dimensionScores).reduce((sum, score) => sum + score, 0) / Object.keys(dimensionScores).length;
+            const normalizedScore = Math.round(totalScore);
+            
+            // 显示结果
+            document.getElementById('result-score').textContent = normalizedScore;
+            
+            // 生成结果描述
+            const resultDescription = generateResultDescription(normalizedScore, state.selectedAgeGroup);
+            document.getElementById('result-description').innerHTML = `<h3>总体评估</h3><p>${resultDescription}</p>`;
+            
+            // 显示维度分数
+            displayDimensionScores(dimensionScores);
+            
+            // 生成建议
+            const recommendations = generateRecommendations(dimensionScores, state.selectedAgeGroup);
+            let recommendationsHTML = '<h3>个性化建议</h3>';
+            recommendations.forEach(rec => {
+                recommendationsHTML += `<div class="recommendation-item">${rec}</div>`;
+            });
+            document.getElementById('result-recommendations').innerHTML = recommendationsHTML;
+            
+            // 切换到结果界面
+            showSection('result-section');
+        }
+
+        // 显示维度分数
+        function displayDimensionScores(dimensionScores) {
+            const container = document.getElementById('dimension-scores');
+            let html = '<h3>各维度得分详情</h3>';
+            
+            for (const [dimension, score] of Object.entries(dimensionScores)) {
+                let level = '';
+                let color = '';
+                
+                if (score >= 80) {
+                    level = '优秀';
+                    color = 'var(--success-color)';
+                } else if (score >= 60) {
+                    level = '良好';
+                    color = 'var(--warning-color)';
+                } else if (score >= 40) {
+                    level = '一般';
+                    color = 'var(--accent-color)';
+                } else {
+                    level = '需要关注';
+                    color = 'var(--danger-color)';
+                }
+                
+                html += `
+                    <div class="dimension-score">
+                        <div class="dimension-name">${dimension}</div>
+                        <div class="dimension-bar">
+                            <div class="dimension-progress" style="width: ${score}%; background-color: ${color}"></div>
+                        </div>
+                        <div>得分: ${score}分 - ${level}</div>
+                    </div>
+                `;
+            }
+            
+            container.innerHTML = html;
+        }
+
+        // 生成结果描述
+        function generateResultDescription(score, ageGroup) {
+            if (score >= 80) {
+                return "测评结果显示心理健康状况优秀。表现出良好的心理适应能力和情绪稳定性，能够有效应对各种挑战，具备积极的心态和良好的社会功能。";
+            } else if (score >= 60) {
+                return "测评结果显示心理健康状况良好。整体心理状态稳定，在某些方面表现突出，具备较好的心理调节能力，能够适应大多数生活情境。";
+            } else if (score >= 40) {
+                return "测评结果显示心理健康状况一般。在某些方面可能存在一些困扰或压力，需要适当关注并提供支持，建议加强心理调适能力的培养。";
+            } else {
+                return "测评结果显示心理健康状况需要关注。可能面临一定的心理困扰或压力，建议寻求专业心理支持，积极采取措施改善心理状态。";
+            }
+        }
+
+        // 生成建议
+        function generateRecommendations(dimensionScores, ageGroup) {
+            const recommendations = [];
+            const lowScoreDimensions = Object.entries(dimensionScores)
+                .filter(([dimension, score]) => score < 60)
+                .sort((a, b) => a[1] - b[1]);
+            
+            // 针对低分维度给出具体建议
+            lowScoreDimensions.forEach(([dimension, score]) => {
+                if (ageGroup === 'preschooler') {
+                    if (dimension === '情绪稳定性') {
+                        recommendations.push("帮助幼儿识别和表达情绪，通过游戏和故事教授情绪管理技巧");
+                    } else if (dimension === '社交能力') {
+                        recommendations.push("创造更多社交机会，鼓励幼儿参与集体活动，学习分享和合作");
+                    } else if (dimension === '行为表现') {
+                        recommendations.push("建立明确的规则和界限，使用正向引导方式培养良好行为习惯");
+                    } else if (dimension === '适应能力') {
+                        recommendations.push("逐步引入新环境和变化，帮助幼儿建立安全感和适应能力");
+                    } else if (dimension === '认知发展') {
+                        recommendations.push("提供丰富的感官刺激和探索机会，鼓励好奇心和创造力");
+                    }
+                } else if (ageGroup === 'junior') {
+                    if (dimension === '情绪管理') {
+                        recommendations.push("学习情绪识别和调节技巧，培养积极的情绪表达方式");
+                    } else if (dimension === '学习压力') {
+                        recommendations.push("制定合理的学习计划，学习压力管理技巧，保持学习与休息的平衡");
+                    } else if (dimension === '人际关系') {
+                        recommendations.push("提升沟通技巧，学习处理人际冲突，建立健康的同伴关系");
+                    } else if (dimension === '自我认知') {
+                        recommendations.push("加强自我认识，发现个人优势，建立积极的自我形象");
+                    } else if (dimension === '生活适应') {
+                        recommendations.push("培养独立生活能力，建立规律作息，发展个人兴趣爱好");
+                    }
+                } else if (ageGroup === 'senior') {
+                    if (dimension === '压力应对') {
+                        recommendations.push("学习有效的压力管理策略，建立支持系统，保持身心健康");
+                    } else if (dimension === '未来规划') {
+                        recommendations.push("探索职业兴趣，制定明确的目标计划，为未来发展做好准备");
+                    } else if (dimension === '自我管理') {
+                        recommendations.push("提升时间管理能力，培养自律习惯，平衡学习与生活");
+                    } else if (dimension === '人际关系') {
+                        recommendations.push("加强与家人朋友的沟通，建立健康的人际关系网络");
+                    } else if (dimension === '心理韧性') {
+                        recommendations.push("培养抗挫折能力，保持积极心态，增强心理弹性");
+                    }
+                }
+            });
+            
+            // 通用建议
+            if (recommendations.length === 0) {
+                recommendations.push("继续保持良好的心理状态，定期进行自我反思和心理调适");
+                recommendations.push("维持健康的生活方式，包括规律作息、均衡饮食和适度运动");
+                recommendations.push("培养积极的兴趣爱好，丰富精神生活，保持心理活力");
+            }
+            
+            recommendations.push("如持续感到心理困扰，建议寻求专业心理咨询师的帮助");
+            
+            return recommendations;
+        }
+
+        // 重新开始测评
+        function restartTest() {
+            state.currentQuestionIndex = 0;
+            state.selectedAgeGroup = '';
+            state.userInfo = {};
+            state.answers = [];
+            state.questions = [];
+            state.dimensions = {};
+            
+            document.getElementById('user-info-form').reset();
+            document.querySelectorAll('.age-group-btn').forEach(btn => {
+                btn.classList.remove('selected');
+            });
+            
+            document.getElementById('selected-age-group').textContent = '';
+            
+            updatePhoneValidationState('');
+            
+            showSection('user-info-section');
+        }
+    </script>
+</body>
+</html>
