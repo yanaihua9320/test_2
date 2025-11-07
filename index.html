@@ -374,7 +374,7 @@
             <h2>用户信息</h2>
             <form id="user-info-form">
                 <div class="form-group">
-                    <label for="parent-name">家长姓名</label>
+                    <label for="parent-name">昵称</label>
                     <input type="text" id="parent-name" required>
                 </div>
                 <div class="form-group">
@@ -387,10 +387,10 @@
                         请输入有效的11位手机号码（以13-19开头）
                     </div>
                 </div>
-                <div class="form-group">
+                <!-- <div class="form-group">
                     <label for="child-name">孩子姓名</label>
                     <input type="text" id="child-name" required>
-                </div>
+                </div> -->
                 <div class="form-group">
                     <label for="child-age">孩子年龄</label>
                     <input type="number" id="child-age" min="3" max="18" required>
@@ -399,8 +399,8 @@
                     <label>选择测评类型</label>
                     <div class="age-group-buttons">
                         <button type="button" class="age-group-btn" data-age-group="preschooler">幼儿测评(3-6岁)</button>
-                        <button type="button" class="age-group-btn" data-age-group="junior">初中生测评(12-15岁)</button>
-                        <button type="button" class="age-group-btn" data-age-group="senior">高中生测评(15-18岁)</button>
+                        <button type="button" class="age-group-btn" data-age-group="junior">初中小学生测评(7-15岁)</button>
+                        <button type="button" class="age-group-btn" data-age-group="senior">高中生测评(16-18岁)</button>
                     </div>
                     <div id="selected-age-group" style="margin-top: 10px; font-weight: bold; color: var(--primary-color);"></div>
                 </div>
@@ -689,8 +689,8 @@
                     // 显示选中的测评类型
                     const displayText = {
                         'preschooler': '幼儿测评(3-6岁)',
-                        'junior': '初中生测评(12-15岁)', 
-                        'senior': '高中生测评(15-18岁)'
+                        'junior': '初中小学生测评(7-15岁)', 
+                        'senior': '高中生测评(16-18岁)'
                     }[state.selectedAgeGroup];
                     
                     document.getElementById('selected-age-group').textContent = `已选择: ${displayText}`;
@@ -729,7 +729,7 @@
             state.userInfo = {
                 parent_name: document.getElementById('parent-name').value,
                 parent_phone: parentPhone,
-                child_name: document.getElementById('child-name').value,
+                // child_name: document.getElementById('child-name').value,
                 child_age: document.getElementById('child-age').value,
                 age_group: state.selectedAgeGroup
             };
